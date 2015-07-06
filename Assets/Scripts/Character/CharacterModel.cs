@@ -82,6 +82,8 @@ public class CharacterModel
 		isOnTheGround = new ReactiveProperty<bool>(true);
 		isNotOnTheGround = new ReactiveProperty<bool>(true);
 		shouldJump = new ReactiveProperty<bool>(false);
+		jumpLocked = new ReactiveProperty<bool>(false);
+		jumpPerformed = new ReactiveProperty<int>(0);
 
 		this.isOnTheGround.Subscribe ((bool isGround) => {
 			this.isNotOnTheGround.Value = !isGround;
@@ -89,6 +91,9 @@ public class CharacterModel
 
 		this.jumpIntention.Subscribe ((JumpIntention intention) => {
 			this.shouldJump.Value = this.ComputeShouldJump();
+
+			// ReactivePropertyは同じ値で更新されてもOnNextが呼ばれないのでfalseに戻す
+			this.shouldJump.Value = false;
 		});
 
 		this.shouldJump.Subscribe ((bool should) => {
@@ -106,6 +111,6 @@ public class CharacterModel
 
 	protected bool ComputeShouldJump()
 	{
-		return isOnTheGround.Value && jumpIntention.Value == JumpIntention.Jump;
+		return !jumpLocked.Value && (isOnTheGround.Value || jumpPerformed.Value < 2) && jumpIntention.Value == JumpIntention.Jump;
 	}
 }

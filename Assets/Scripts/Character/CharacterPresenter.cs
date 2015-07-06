@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System;
 using System.Collections;
 using UniRx;
 using UniRx.Triggers;
@@ -28,6 +29,7 @@ public class CharacterPresenter : MonoBehaviour
 
 		view.IsOnTheGroundAsObservalbe ().Subscribe ((bool isOnTheGround) => {
 			this.model.isOnTheGround.Value = isOnTheGround;
+			this.model.jumpStateMachine.LandedTransition();
 		});
 
 		view.JumpIntentionAsObservable ().Subscribe ((CharacterModel.JumpIntention intention) => {
@@ -42,6 +44,8 @@ public class CharacterPresenter : MonoBehaviour
 		model.jumpStateMachine.onDoJump.Subscribe ((Unit _) => {
 			view.OnDoJump();
 		});
+
+		model.jumpStateMachine.jumpState.Subscribe (this.JumpStateChanged);
 	}
 
 	/// <summary>
@@ -63,5 +67,25 @@ public class CharacterPresenter : MonoBehaviour
 		}
 
 		this.view.OnIdle (this.model.speed.Value);
+	}
+
+	private void JumpStateChanged(CharacterJumpStateMachine.States state)
+	{
+		if (state == CharacterJumpStateMachine.States.NoJump)
+		{
+			this.model.jumpPerformed.Value = 0;
+		}
+		else if (state == CharacterJumpStateMachine.States.DoJump)
+		{
+			this.model.jumpPerformed.Value = this.model.jumpPerformed.Value + 1;
+			this.model.jumpLocked.Value = true;
+
+			Observable.Timer (TimeSpan.FromMilliseconds (100))
+				.Subscribe (l => {
+					Debug.Log("this.model.jumpLocked.Value = false;");
+					this.model.jumpLocked.Value = false;
+				});
+		}
+		
 	}
 }

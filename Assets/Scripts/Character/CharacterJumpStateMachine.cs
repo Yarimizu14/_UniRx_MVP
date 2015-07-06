@@ -18,6 +18,18 @@ public class CharacterJumpStateMachine : StateBehaviour
 	}
 
 	/// <summary>
+	/// The jump state subject.
+	/// </summary>
+	private Subject<States> _jumpStateSubject;
+	public IObservable<States> jumpState
+	{
+		get
+		{
+			return _jumpStateSubject ?? (_jumpStateSubject = new Subject<States>());
+		}
+	}
+
+	/// <summary>
 	/// The no jump subject.
 	/// </summary>
 	private Subject<Unit> _noJumpSubject;
@@ -68,6 +80,10 @@ public class CharacterJumpStateMachine : StateBehaviour
 		{
 			_noJumpSubject.OnNext (Unit.Default);
 		}
+		if (_jumpStateSubject != null)
+		{
+			_jumpStateSubject.OnNext (States.NoJump);
+		}
 	}
 
 	/// <summary>
@@ -80,6 +96,10 @@ public class CharacterJumpStateMachine : StateBehaviour
 		{
 			_doJumpSubject.OnNext (Unit.Default);
 		}
+		if (_jumpStateSubject != null)
+		{
+			_jumpStateSubject.OnNext (States.DoJump);
+		}
 	}
 
 	/// <summary>
@@ -90,6 +110,10 @@ public class CharacterJumpStateMachine : StateBehaviour
 		if (_inTheAirSubject != null)
 		{
 			_inTheAirSubject.OnNext (Unit.Default);
+		}
+		if (_jumpStateSubject != null)
+		{
+			_jumpStateSubject.OnNext (States.InTheAir);
 		}
 	}
 
@@ -165,7 +189,7 @@ public class CharacterJumpStateMachine : StateBehaviour
 
 		if (current.Equals(States.NoJump))
 		{
-			this.ChangeState (States.DoJump);
+			return;
 		}
 
 		if (current.Equals(States.DoJump))
