@@ -20,19 +20,31 @@ public class CharacterPresenter : MonoBehaviour
 	{
 		this.model = new CharacterModel ();
 
+		// view => model
 		view.MovementIntentionObservable.Subscribe ((CharacterModel.MovementIntention intention) => {
-			this.UpdateCharacterPosition(intention);
-			this.model.intention.Value = intention;
+			this.MovementIntentionHandler(intention);
+			this.model.moveIntention.Value = intention;
 		});
 
-		//this.model.intention.Subscribe ((_) => this.UpdateCharacterPosition(_));
+		view.JumpIntentionAsObservable ().Subscribe ((CharacterModel.JumpIntention intention) => {
+			this.JumpIntentionHandler(intention);
+		});
+
+		view.IsOnTheGroundAsObservalbe ().Subscribe ((bool isOnTheGround) => {
+			this.model.isOnTheGround.Value = isOnTheGround;
+		});
+
+		// model => view
+		model.isNotOnTheGround.Subscribe ((bool isOnTheGround) => {
+			this.view.IsNotOnTheGroundChanged(isOnTheGround);
+		});
 	}
 
 	/// <summary>
 	/// Updates the character position.
 	/// </summary>
 	/// <param name="intention">Intention.</param>
-	public void UpdateCharacterPosition(CharacterModel.MovementIntention intention)
+	public void MovementIntentionHandler(CharacterModel.MovementIntention intention)
 	{
 		if (intention == CharacterModel.MovementIntention.Right)
 		{
@@ -47,5 +59,17 @@ public class CharacterPresenter : MonoBehaviour
 		}
 
 		this.view.OnIdle (this.model.speed.Value);
+	}
+
+	/// <summary>
+	/// Jumps the intention handler.
+	/// </summary>
+	/// <param name="intention">Intention.</param>
+	public void JumpIntentionHandler(CharacterModel.JumpIntention intention)
+	{
+		if (intention == CharacterModel.JumpIntention.Jump)
+		{
+			this.view.OnDoJump ();
+		}
 	}
 }

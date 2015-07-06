@@ -11,11 +11,8 @@ public class CharacterView : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-
 		_art = transform.FindChild ("CharacterArt");
-
 		_animator = _art.GetComponent<Animator> ();
-
 	}
 
 	/// <summary>
@@ -26,7 +23,6 @@ public class CharacterView : MonoBehaviour {
 	{
 		get
 		{
-
 			if (_MovementIntentionObservable == null)
 			{
 				_MovementIntentionObservable = this.UpdateAsObservable ().Select ((_) => this.CalculateMovementIntention());
@@ -52,6 +48,29 @@ public class CharacterView : MonoBehaviour {
 		}
 
 		return CharacterModel.MovementIntention.Stop;
+	}
+
+	/// <summary>
+	/// Jumps the intention as observable.
+	/// </summary>
+	/// <returns>The intention as observable.</returns>
+	public IObservable<CharacterModel.JumpIntention> JumpIntentionAsObservable()
+	{
+		return this.UpdateAsObservable ().Select (_ => CalculateJumpIntention());
+	}
+
+	/// <summary>
+	/// Calculates the jump intention.
+	/// </summary>
+	/// <returns>The jump intention.</returns>
+	protected CharacterModel.JumpIntention CalculateJumpIntention()
+	{
+		if (Input.GetKey(KeyCode.Space))
+		{
+			return CharacterModel.JumpIntention.Jump;
+		}
+
+		return CharacterModel.JumpIntention.None;
 	}
 
 	/// <summary>
@@ -82,5 +101,43 @@ public class CharacterView : MonoBehaviour {
 
 		_animator.SetInteger ("State", 1);
 		_art.localEulerAngles = new Vector3 (0f, 0, 0f);
+	}
+
+	/// <summary>
+	/// Raises the jump event.
+	/// </summary>
+	/// <param name="speed">Speed.</param>
+	public void OnDoJump()
+	{
+		var rigid2D = this.GetComponent<Rigidbody2D> ();
+
+		rigid2D.velocity = new Vector2 (rigid2D.velocity.x, 0f);
+		rigid2D.AddForce (transform.up * 8, ForceMode2D.Impulse);
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CharacterView"/> class.
+	/// </summary>
+	/// <param name="value">If set to <c>true</c> value.</param>
+	public void IsNotOnTheGroundChanged(bool value)
+	{
+		_animator.SetBool("IsInTheAir", value);
+	}
+
+	/// <summary>
+	/// Initializes a new instance of the <see cref="CharacterView"/> class.
+	/// </summary>
+	public IObservable<bool> IsOnTheGroundAsObservalbe()
+	{
+		return this.UpdateAsObservable().Select(_ => CalculateIsOnTheGround());
+	}
+
+	/// <summary>
+	/// Calculates the jump intention.
+	/// </summary>
+	/// <returns>The jump intention.</returns>
+	protected bool CalculateIsOnTheGround()
+	{
+		return Physics2D.Raycast (transform.position, -transform.up.normalized, 0.05f, LayerMask.GetMask(new []{ "Floor" }));
 	}
 }
