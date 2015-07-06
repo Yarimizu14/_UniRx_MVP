@@ -121,6 +121,10 @@ public class CharacterView : MonoBehaviour {
 	/// <param name="value">If set to <c>true</c> value.</param>
 	public void IsNotOnTheGroundChanged(bool value)
 	{
+		if (_animator == null)
+		{
+			return;
+		}
 		_animator.SetBool("IsInTheAir", value);
 	}
 

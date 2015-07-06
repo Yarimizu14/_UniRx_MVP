@@ -26,17 +26,21 @@ public class CharacterPresenter : MonoBehaviour
 			this.model.moveIntention.Value = intention;
 		});
 
-		view.JumpIntentionAsObservable ().Subscribe ((CharacterModel.JumpIntention intention) => {
-			this.JumpIntentionHandler(intention);
-		});
-
 		view.IsOnTheGroundAsObservalbe ().Subscribe ((bool isOnTheGround) => {
 			this.model.isOnTheGround.Value = isOnTheGround;
+		});
+
+		view.JumpIntentionAsObservable ().Subscribe ((CharacterModel.JumpIntention intention) => {
+			this.model.jumpIntention.Value = intention;
 		});
 
 		// model => view
 		model.isNotOnTheGround.Subscribe ((bool isOnTheGround) => {
 			this.view.IsNotOnTheGroundChanged(isOnTheGround);
+		});
+
+		model.jumpStateMachine.onDoJump.Subscribe ((Unit _) => {
+			view.OnDoJump();
 		});
 	}
 
@@ -59,17 +63,5 @@ public class CharacterPresenter : MonoBehaviour
 		}
 
 		this.view.OnIdle (this.model.speed.Value);
-	}
-
-	/// <summary>
-	/// Jumps the intention handler.
-	/// </summary>
-	/// <param name="intention">Intention.</param>
-	public void JumpIntentionHandler(CharacterModel.JumpIntention intention)
-	{
-		if (intention == CharacterModel.JumpIntention.Jump)
-		{
-			this.view.OnDoJump ();
-		}
 	}
 }
